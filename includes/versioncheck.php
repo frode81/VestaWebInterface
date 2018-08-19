@@ -1,6 +1,28 @@
 <?php
 
-$currentversion = 'v0.3-Beta';
+/** 
+*
+* Vesta Web Interface v0.5.1-Beta
+*
+* Copyright (C) 2018 Carter Roeser <carter@cdgtech.one>
+* https://cdgco.github.io/VestaWebInterface
+*
+* Vesta Web Interface is free software: you can redistribute it and/or modify
+* it under the terms of version 3 of the GNU General Public License as published 
+* by the Free Software Foundation.
+*
+* Vesta Web Interface is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with Vesta Web Interface.  If not, see
+* <https://github.com/cdgco/VestaWebInterface/blob/master/LICENSE>.
+*
+*/
+
+include("version.php");
 
 $ch = curl_init();
 
@@ -14,8 +36,14 @@ curl_close($ch);
 
 $data2 = json_decode($data, true);
 $ghversion = $data2[0]['name'];
+
+$ghsimplified = preg_replace("/[^0-9]/", "", $ghversion );
+$currentsimplified = preg_replace("/[^0-9]/", "", $currentversion );
+
 if (isset($ghversion) && $ghversion != '') {
-if ($ghversion == $currentversion) { echo $currentversion; } else {echo '<a href="https://github.com/cdgco/VestaWebInterface/releases" style="text-decoration: underline;" data-toggle="tooltip" title="' . $ghversion . ' Now Available!">' . $currentversion . ' (Outdated)</a>';}
+    if ($ghversion <= $currentversion) { echo $currentversion; } 
+    elseif ( $ghsimplified[0] > $currentsimplified[0] || $ghsimplified[1] > $currentsimplified[1] ) {echo '<a href="https://github.com/cdgco/VestaWebInterface/releases" style="text-decoration: underline;" data-toggle="tooltip" title="' . $ghversion . ' Now Available!">' . $currentversion . ' (Outdated)</a>';}
+    else {echo '<a href="https://github.com/cdgco/VestaWebInterface/releases" style="text-decoration: underline;" data-toggle="tooltip" title="' . $ghversion . ' Now Available!">' . $currentversion . '</a>';}
 } 
 else { echo $currentversion;}
 ?>

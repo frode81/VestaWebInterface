@@ -1,19 +1,9 @@
 ![VWI Banner](https://raw.githubusercontent.com/cdgco/VestaWebInterface/master/VWI%20Banner.png)
 
-Demo: https://ide.cdgtech.one/dev
+Vesta Web Interface is a PHP control panel and interface that integrates with the VestaCP API to provide a beautiful user friendly experience. VWI features the ability to rebrand the control panel, change the theme, install it wherever you want, restrict access to users, easily edit options and offers integrations to services such as Google Analytics, Cloudflare, Interakt and many more coming soon along with the ability to install or develop your own integrations and apps with the new VWI Plugin System.
 
-Username: demo
+While the admin control panel is still in alpha development, Vesta Web Interface is primarily only a user control panel. The Admin Panel will be fully availble in public beta v0.5.0 along with more integrations, themes, and great features such as extended localization<sup>+</sup>, billing system<sup>+</sup>, and extended softaculous support<sup>+</sup>.
 
-Password: demo123
+<sup>+</sup> Not available in v0.5.0.
 
-
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7e9666795d6b4aa1a7838f7af599b720)](https://www.codacy.com/app/carter/VestaWebInterface?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cdgco/VestaWebInterface&amp;utm_campaign=Badge_Grade)
-[![Maintainability](https://api.codeclimate.com/v1/badges/89b83ed998d2615a4bd6/maintainability)](https://codeclimate.com/github/cdgco/VestaWebInterface/maintainability)
-[![GitHub repo size in bytes](https://img.shields.io/github/repo-size/cdgco/vestawebinterface.svg)](https://github.com/cdgco/VestaWebInterface/releases)
-[![GitHub (pre-)release](https://img.shields.io/github/release/cdgco/vestawebinterface/all.svg)](https://github.com/cdgco/VestaWebInterface/releases)
-
-For installation, details and technical information, visit the [VWI Wiki](https://github.com/cdgco/VestaWebInterface/wiki)
-
-## Support
-
-For support regarding Vesta Web Interface, you can email me at support [at] cdgtech.one, visit the support portal online at http://support.cdgtech.one, or click the buttons in the bottom left and right hand corners of the live demo to chat or leave feedback.
+For installation, details, live demo and technical information, visit the [VWI Documentation](http://vwi.cdgtech.one)

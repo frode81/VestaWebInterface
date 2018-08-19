@@ -1,6 +1,37 @@
 <?php
-if ($_POST['x'] != '1') { if (file_exists( '../includes/config.php' )) { header( 'Location: ../index.php' );}; }
 
+/** 
+*
+* Vesta Web Interface v0.5.1-Beta
+*
+* Copyright (C) 2018 Carter Roeser <carter@cdgtech.one>
+* https://cdgco.github.io/VestaWebInterface
+*
+* Vesta Web Interface is free software: you can redistribute it and/or modify
+* it under the terms of version 3 of the GNU General Public License as published 
+* by the Free Software Foundation.
+*
+* Vesta Web Interface is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with Vesta Web Interface.  If not, see
+* <https://github.com/cdgco/VestaWebInterface/blob/master/LICENSE>.
+*
+*/
+
+if (!file_exists( '../includes/config.php' )) { header('step2.php'); } 
+$configlocation = "../includes/";
+require("../includes/config.php"); include("../includes/version.php");
+function randomPassword() { $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'; $pass = array(); $alphaLength = strlen($alphabet) - 1; for ($i = 0; $i < 8; $i++) { $n = rand(0, $alphaLength); $pass[] = $alphabet[$n]; } return implode($pass); }
+
+$a = randomPassword();
+$b = randomPassword();
+
+if($_POST['DEFAULT_TO_ADMIN'] == 'on'){ $defaultadmin = 'true'; }
+else { $defaultadmin = 'false'; }
 if($_POST['VESTA_SSL_ENABLED'] == 'on'){ $sslenabled = 'true'; }
 else { $sslenabled = 'false'; }
 if($_POST['ENABLE_WEB'] == 'on'){ $webenabled = 'true'; }
@@ -11,209 +42,164 @@ if($_POST['ENABLE_MAIL'] == 'on'){ $mailenabled = 'true'; }
 else { $mailenabled = 'false'; }
 if($_POST['ENABLE_DB'] == 'on'){ $dbenabled = 'true'; }
 else { $dbenabled = 'false'; }
+if($_POST['ENABLE_SOFTURL'] == 'on'){ $softaculouslink = 'true'; }
+else { $softaculouslink = 'false'; }
 if($_POST['ENABLE_OLDCPURL'] == 'on'){ $oldcplink = 'true'; }
 else { $oldcplink = 'false'; }
+if($_POST['ENABLE_ADMIN'] == 'on'){ $adminenabled = 'true'; }
+else { $adminenabled = 'false'; }
+if($_POST['ENABLE_PROFILE'] == 'on'){ $profileenabled = 'true'; }
+else { $profileenabled = 'false'; }
+if($_POST['ENABLE_CRON'] == 'on'){ $cronenabled = 'true'; }
+else { $cronenabled = 'false'; }
+if($_POST['ENABLE_BACKUPS'] == 'on'){ $backupsenabled = 'true'; }
+else { $backupsenabled = 'false'; }
+if($_POST['ENABLE_REG'] == 'on'){ $regenabled = 'true'; }
+else { $regenabled = 'false'; }
 
-require('../includes/tracker.php');
-$woopra = new WoopraTracker(array("domain" => 'vwi-install.tracker'));
-$woopra->set_woopra_cookie();
-$woopra->identify(array(
-"name" => $_POST['SITENAME'],
-"url" => substr( "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", 0, -19)));
+$con=mysqli_connect($mysql_server,$mysql_uname,$mysql_pw,$mysql_db);
 
+$sql1 = "DROP TABLE IF EXISTS `".$mysql_table."config`;";
 
-$writestr = "<?php
+if (!mysqli_query($con, $sql1)) { echo "Error dropping table: " . mysqli_error($con); }
+mysqli_close($con);
 
-//////////////////////////////////////////////////////////
-// VESTA WEB INTERFACE CONFIGURATION - EDIT VALUES HERE //
-//////////////////////////////////////////////////////////
+$con=mysqli_connect($mysql_server,$mysql_uname,$mysql_pw,$mysql_db);
 
-// CPANEL SETTINGS //
-date_default_timezone_set('".$_POST['TIMEZONE']."'); // Server Time Zone - See http://php.net/manual/en/timezones.php for syntax.
-DEFINE('SITE_NAME', '".$_POST['SITENAME']."'); // Site name for use in page titles. Ex: 'My Host Company'.
-DEFINE('THEME', '".$_POST['THEME']."'); // Accepted options are 'default', 'blue', 'purple' and 'orange'
+$sql2 = "CREATE TABLE IF NOT EXISTS `".$mysql_table."config` (
+  `VARIABLE` varchar(64) NOT NULL,
+  `VALUE` varchar(1024) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-// VESTA API SETTINGS //
-DEFINE('VESTA_HOST_ADDRESS', '".$_POST['VESTA_HOST_ADDRESS']."'); // URL or IP Address of VestaCP. Ex: 'myhost.com' or '12.34.56.78'.
-DEFINE('VESTA_SSL_ENABLED', '".$sslenabled."'); // If ssl is enabled on VestaCP - Ex: 'true' or 'false'.
-DEFINE('VESTA_PORT', '".$_POST['VESTA_PORT']."'); // VestaCP port. Ex: '8083'.
-DEFINE('VESTA_ADMIN_UNAME', '".$_POST['VESTA_ADMIN_UNAME']."'); // Username of VestaCP Admin account. Ex: 'admin'.
-DEFINE('VESTA_ADMIN_PW', '".$_POST['VESTA_ADMIN_PW']."'); // Password for VestaCP Admin account. Ex: 'MyPassword1'.
+if (mysqli_query($con, $sql2)) {} else { echo "Error creating table: " . mysqli_error($con); }
 
-// OPTIONAL SETTINGS //
-DEFINE('FTP_URL', '".$_POST['FTP_URL']."'); // URL for Web FTP. Leave blank if you do not have a Web FTP Interface. Set as 'disabled' to remove the Web FTP option.
-DEFINE('WEBMAIL_URL', '".$_POST['WEBMAIL_URL']."'); // Webmail URL. Leave blank for VestaCP default. Set as 'disabled' to remove the webmail option.
-DEFINE('PHPMYADMIN_URL', '".$_POST['PHPMYADMIN_URL']."'); // phpMyAdmin URL. Leave blank for VestaCP default. Set as 'disabled; to remove phpMyAdmin option.
-DEFINE('PHPPGADMIN_URL', '".$_POST['PHPPGADMIN_URL']."'); // phpPgAdmin URL. Leave blank for VestaCP default. Set as 'disabled; to remove phpPgAdmin option.
-DEFINE('SUPPORT_URL', '".$_POST['SUPPORT_URL']."'); // Support URL. Leave blank or set to 'disabled' to disable.
+mysqli_close($con);
 
-// ENABLE OR DISABLE SECTIONS //
-DEFINE('WEB_ENABLED', '".$webenabled."'); // Enable or disable web section. Ex: 'true' or 'false'.
-DEFINE('DNS_ENABLED', '".$dnsenabled."'); // Enable or disable dns section. Ex: 'true' or 'false'.
-DEFINE('MAIL_ENABLED', '".$mailenabled."'); // Enable or disable mail section. Ex: 'true' or 'false'.
-DEFINE('DB_ENABLED', '".$dbenabled."'); // Enable or disable database section. Ex: 'true' or 'false'.
-DEFINE('OLD_CP_LINK', '".$oldcplink."'); // Enable or disable link to old cpanel. Ex: 'true' or 'false'.
+$con=mysqli_connect($mysql_server,$mysql_uname,$mysql_pw,$mysql_db);
 
-// INTEGRATIONS //
-DEFINE('GOOGLE_ANALYTICS_ID', '".$_POST['GOOGLE_ANALYTICS_ID']."'); // Enable Google Analytics Tracking. Enter Tracking ID.
-DEFINE('INTERAKT_APP_ID', '".$_POST['INTERAKT_APP_ID']."'); // Enable Interakt Support / Tools. Enter Interakt App ID.
-DEFINE('INTERAKT_API_KEY', '".$_POST['INTERAKT_API_KEY']."'); // Enable Interakt User Management. Interakt Account number must be set first. Enter Interakt API Key.
+$v1 = mysqli_real_escape_string($con, $_POST['SITENAME']);
+$v2 = mysqli_real_escape_string($con, $_POST['THEME']);
+$v3 = mysqli_real_escape_string($con, $_POST['LANGUAGE']);
+$v4 = mysqli_real_escape_string($con, $_POST['VESTA_HOST_ADDRESS']);
+$v5 = mysqli_real_escape_string($con, $_POST['VESTA_PORT']);
+$v6 = mysqli_real_escape_string($con, $_POST['VESTA_ADMIN_UNAME']);
+$v7 = mysqli_real_escape_string($con, $_POST['VESTA_ADMIN_PW']);
+$v8 = mysqli_real_escape_string($con, $_POST['FTP_URL']);
+$v9 = mysqli_real_escape_string($con, $_POST['WEBMAIL_URL']);
+$v10 = mysqli_real_escape_string($con, $_POST['PHPMYADMIN_URL']);
+$v11 = mysqli_real_escape_string($con, $_POST['PHPPGADMIN_URL']);
+$v12 = mysqli_real_escape_string($con, $_POST['SUPPORT_URL']);
+$v13 = mysqli_real_escape_string($con, $_POST['GOOGLE_ANALYTICS_ID']);
+$v14 = mysqli_real_escape_string($con, $_POST['INTERAKT_APP_ID']);
+$v15 = mysqli_real_escape_string($con, $_POST['INTERAKT_API_KEY']);
+$v16 = mysqli_real_escape_string($con, $_POST['CLOUDFLARE_API_KEY']);
+$v17 = mysqli_real_escape_string($con, $_POST['CLOUDFLARE_EMAIL']);
+$v18 = mysqli_real_escape_string($con, $_POST['PLUGINS']);
+$v19 = mysqli_real_escape_string($con, $_POST['TIMEZONE']);
 
-///////////////////////////////////////////////////////////////////////
-// DO NOT EDIT BELOW THIS LINE - CONVERTING AND PROCESSING CONSTANTS //
-///////////////////////////////////////////////////////////////////////
+$sql3 = "INSERT INTO `".$mysql_table."config` (`VARIABLE`, `VALUE`) VALUES
+('TIMEZONE', '".$v19."'),
+('SITE_NAME', '".$v1."'),
+('THEME', '".$v2."'),
+('LANGUAGE', '".$v3."'),
+('DEFAULT_TO_ADMIN', '".$defaultadmin."'),
+('VESTA_HOST_ADDRESS', '".$v4."'),
+('VESTA_SSL_ENABLED', '".$sslenabled."'),
+('VESTA_PORT', '".$v5."'),
+('VESTA_METHOD', 'credentials'),
+('VESTA_API_KEY', ''),
+('VESTA_ADMIN_UNAME', '".$v6."'),
+('VESTA_ADMIN_PW', '".$v7."'),
+('KEY1', '".$a."'),
+('KEY2', '".$b."'),
+('WARNINGS_ENABLED', 'admin'),
+('ICON', 'admin-logo.png'),
+('LOGO', 'admin-text.png'),
+('FAVICON', 'favicon.ico'),
+('WEB_ENABLED', '".$webenabled."'),
+('DNS_ENABLED', '".$dnsenabled."'),
+('MAIL_ENABLED', '".$mailenabled."'),
+('DB_ENABLED', '".$dbenabled."'),
+('ADMIN_ENABLED', '".$adminenabled."'),
+('PROFILE_ENABLED', '".$profileenabled."'),
+('CRON_ENABLED', '".$cronenabled."'),
+('BACKUPS_ENABLED', '".$backupsenabled."'),
+('REGISTRATIONS_ENABLED', '".$regenabled."'),
+('SOFTACULOUS_URL', '".$softaculouslink."'),
+('OLD_CP_LINK', '".$oldcplink."'),
+('PHPMAIL_ENABLED', 'false'),
+('MAIL_FROM', 'hello@".$v4."'),
+('MAIL_NAME', '".$v1."'),
+('SMTP_ENABLED', 'false'),
+('SMTP_PORT', '587'),
+('SMTP_HOST', ''),
+('SMTP_AUTH', 'true'),
+('SMTP_UNAME', ''),
+('SMTP_PW', ''),
+('SMTP_ENC', 'tls'),
+('FTP_URL', '".$v8."'),
+('WEBMAIL_URL', '".$v9."'),
+('PHPMYADMIN_URL', '".$v10."'),
+('PHPPGADMIN_URL', '".$v11."'),
+('SUPPORT_URL', '".$v12."'),
+('PLUGINS', '".$v18."'),
+('GOOGLE_ANALYTICS_ID', '".$v13."'),
+('INTERAKT_APP_ID', '".$v14."'),
+('INTERAKT_API_KEY', '".$v15."'),
+('CLOUDFLARE_API_KEY', '".$v16."'),
+('CLOUDFLARE_EMAIL', '".$v17."');";
 
-if(VESTA_SSL_ENABLED == 'false'){
- \$vst_ssl = 'http://';
-}
-else{
- \$vst_ssl = 'https://';
-}
+if (mysqli_query($con, $sql3)) {} else { echo "Error populating table: " . mysqli_error($con); }
 
-if(VESTA_PORT == ''){
- \$vesta_port = '8083';
-}
-else{
- \$vesta_port = VESTA_PORT;
-}
-
-if(FTP_URL == ''){
- \$ftpurl = 'http://net2ftp.com/';
-}
-elseif(FTP_URL == 'disabled'){
- \$ftpurl = '';
-}
-else{
- \$ftpurl = FTP_URL;
-}
-
-if(WEB_ENABLED != 'true'){
- \$webenabled = '';
-}
-else{
- \$webenabled = WEB_ENABLED;
-}
-if(DNS_ENABLED != 'true'){
- \$dnsenabled = '';
-}
-else{
- \$dnsenabled = DNS_ENABLED;
-}
-if(MAIL_ENABLED != 'true'){
- \$mailenabled = '';
-}
-else{
- \$mailenabled = MAIL_ENABLED;
-}
-if(DB_ENABLED != 'true'){
- \$dbenabled = '';
-}
-else{
- \$dbenabled = DB_ENABLED;
-}
-
-\$vst_url = \$vst_ssl . VESTA_HOST_ADDRESS . ':' . \$vesta_port . '/api/';
-\$url8083 = \$vst_ssl . VESTA_HOST_ADDRESS . ':' . \$vesta_port;
-\$vst_username = VESTA_ADMIN_UNAME;
-\$vst_password = VESTA_ADMIN_PW;
-\$themecolor = THEME . '.css';
-\$uname = base64_decode(\$_SESSION['username']);
-\$loggedin = base64_decode(\$_SESSION['loggedin']);
-\$locale = 'en_US.utf8';
-\$username = \$uname;
-\$sitetitle = SITE_NAME;
-
-if(WEBMAIL_URL == ''){
- \$webmailurl = \$vst_ssl . VESTA_HOST_ADDRESS . '/webmail';
-}
-elseif(WEBMAIL_URL == 'disabled'){
- \$webmailurl = '';
-}
-else{
- \$webmailurl = WEBMAIL_URL;
-}
-
-if(PHPMYADMIN_URL == ''){
- \$phpmyadmin = \$vst_ssl . VESTA_HOST_ADDRESS . '/phpmyadmin';
-}
-elseif(PHPMYADMIN_URL == 'disabled'){
- \$phpmyadmin = '';
-}
-else{
- \$phpmyadmin = PHPMYADMIN_URL;
-}
-
-if(PHPPGADMIN_URL == ''){
- \$phppgadmin = \$vst_ssl . VESTA_HOST_ADDRESS . '/phppgadmin';
-}
-elseif(PHPPGADMIN_URL == 'disabled'){
- \$phppgadmin = '';
-}
-else{
- \$phppgadmin = PHPPGADMIN_URL;
-}
-
-if(SUPPORT_URL == ''){
- \$supporturl = '';
-}
-elseif(SUPPORT_URL == 'disabled'){
- \$supporturl = '';
-}
-else{
- \$supporturl = SUPPORT_URL;
-}
-
-if(OLD_CP_LINK == 'false'){
- \$oldcpurl = '';
-}
-else{
- \$oldcpurl = \$url8083;
-}
-require 'locale.php';
-require('tracker.php');
-\$woopra = new WoopraTracker(array('domain' => 'vwi-install.tracker'));
-\$woopra->set_woopra_cookie();
-\$woopra->identify(array(
-'sitename' => \$sitename,
-'url' => \$_SERVER[HTTP_HOST] . \$_SERVER[REQUEST_URI]));
-
-?>";
-
-file_put_contents('../includes/config.php', $writestr);
+mysqli_close($con);
 ?>
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <?php $woopra->track()->js_code(); ?>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <link href="../css/style.css" rel="stylesheet">
+    </head>
+    <body class="fix-header">
+        <div class="preloader">
+            <svg class="circular" viewBox="25 25 50 50">
+                <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10" /> 
+            </svg>
+        </div>
 
-    <title>Install Vesta Web Interface</title>
-<style>
-body {
-  padding-top: 50px;
-}
-.starter-template {
-  padding: 40px 15px;
-  text-align: center;
-}
-</style>
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="container">
-      <div class="starter-template">
-        <h1>Configuration Complete!</h1><br>
-        <p class="lead">IMPORTANT: Chmod the 'includes' directory to 755! <br><br>If you have not already installed the VWI Backend,<br> run the command "bash (curl -s -L https://git.io/vbjOd)" <br>on your vesta server or follow the instructions on the <a href="https://github.com/cdgco/VestaWebInterface">GitHub Repo</a></p><br>
-          <a href="../login.php"><button class="btn btn-info btn-lg">Launch Control Panel</button></a>
-      </div>
-    </div>
-    <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-  </body>
+
+        <form id="form" action="https://cdgtech.one/installvwi.php" method="post">
+            <?php 
+
+            if ($_POST['GOOGLE_ANALYTICS_ID'] != '') {$GAE="Enabled";} else {$GAE="Disabled";}
+            if ($_POST['INTERAKT_APP_ID'] != '') {$IAE="Enabled";} else {$IAE="Disabled";}
+            if ($_POST['CLOUDFLARE_API_KEY'] != '') {$CFE="Enabled";} else {$CFE="Disabled";}
+            if(phpversion()){ $phpversion = phpversion(); }
+            if(php_uname()){ $operatingsystem = php_uname(); }
+            echo '<input type="hidden" name="url" value="'.$_SERVER[HTTP_HOST].$_SERVER[REQUEST_URI].'">';
+            echo '<input type="hidden" name="name" value="'.$_POST['SITENAME'].'">';
+            echo '<input type="hidden" name="theme" value="'.$_POST['THEME'].'">';
+            echo '<input type="hidden" name="language" value="'.$_POST['LANGUAGE'].'">';
+            echo '<input type="hidden" name="timezone" value="'.$_POST['TIMEZONE'].'">';
+            echo '<input type="hidden" name="clientip" value="'.$_SERVER[REMOTE_ADDR].'">';
+            echo '<input type="hidden" name="serverip" value="'.$_SERVER[SERVER_ADDR].'">';
+            echo '<input type="hidden" name="https" value="'.$_SERVER[HTTPS].'">';
+            echo '<input type="hidden" name="serverprotocol" value="'.$_SERVER[SERVER_PROTOCOL].'">';
+            echo '<input type="hidden" name="time" value="'.$_SERVER[REQUEST_TIME].'">';
+            echo '<input type="hidden" name="email" value="'.$_POST['EMAILADDR'].'">';
+            echo '<input type="hidden" name="gae" value="'.$GAE.'">';
+            echo '<input type="hidden" name="iae" value="'.$IAE.'">';
+            echo '<input type="hidden" name="cfe" value="'.$CFE.'">';
+            echo '<input type="hidden" name="version" value="'.$currentversion.'">';
+            echo '<input type="hidden" name="software" value="'.$_SERVER[SERVER_SOFTWARE].'">';
+            echo '<input type="hidden" name="agent" value="'.$_SERVER[HTTP_USER_AGENT].'">';
+            echo '<input type="hidden" name="php" value="'.$phpversion.'">';
+            echo '<input type="hidden" name="os" value="'.$operatingsystem.'">';
+
+            ?>
+
+        </form>
+        <script type="text/javascript">
+            document.getElementById('form').submit();
+        </script>
+    </body>
+    <script src="../plugins/components/jquery/jquery.min.js"></script>
 </html>
